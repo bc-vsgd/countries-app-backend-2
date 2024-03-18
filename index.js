@@ -8,7 +8,7 @@ app.use(cors());
 
 const countriesUrl = process.env.COUNTRIES_API_URL;
 
-// All countries, alphabetical sort
+// All countries, alphabetical sort + regions & subregions array
 app.get("/countries", async (req, res) => {
   try {
     // data: countries array
@@ -17,8 +17,17 @@ app.get("/countries", async (req, res) => {
     const sortedData = data.sort((a, b) => {
       return a.name.common.localeCompare(b.name.common);
     });
+    // regions & subregions
+    const continents = await axios.get(
+      `${countriesUrl}/all?fields=region,subregion`
+    );
+    // console.log("back continents: ", continents.data);
 
-    return res.status(200).json({ message: "Home page", data: sortedData });
+    return res.status(200).json({
+      message: "Home page",
+      data: sortedData,
+      continents: continents.data,
+    });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -30,6 +39,7 @@ app.get("/countries/sort", async (req, res) => {
     const { data } = await axios.get(`${countriesUrl}/all`);
     // Get the values of query params
     const { name, pop, area } = req.query;
+    // console.log(req.query);
     // Sort by name
     if (name) {
       if (name === "asc") {
@@ -96,16 +106,20 @@ app.get("/countries/sort", async (req, res) => {
 // Countries searched by name, continent/region/subregion, language or currency
 app.get("/countries/search", async (req, res) => {
   try {
-    const { name, cont, lang, curr } = req.query;
+    // console.log(req.query);
+    const { name, cont, type, lang, curr } = req.query;
     if (name) {
       const { data } = await axios.get(`${countriesUrl}/name/${name}`);
       return res
         .status(200)
         .json({ message: `Country name search: ${name}`, data });
     }
-    // if (cont){
-    //     const {data} = await axios.get(``)
-    // }
+    if (cont) {
+      const { data } = await axios.get(`${countriesUrl}/${type}/${cont}`);
+      return res
+        .status(200)
+        .json({ message: "Country continent search", data });
+    }
     if (lang) {
       const { data } = await axios.get(`${countriesUrl}/lang/${lang}`);
       return res
