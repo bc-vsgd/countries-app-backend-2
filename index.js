@@ -17,16 +17,21 @@ app.get("/countries", async (req, res) => {
     const sortedData = data.sort((a, b) => {
       return a.name.common.localeCompare(b.name.common);
     });
-    // regions & subregions
+    // continents (regions & subregions)
     const continents = await axios.get(
       `${countriesUrl}/all?fields=region,subregion`
     );
-    // console.log("back continents: ", continents.data);
+    // languages
+    const languages = await axios.get(`${countriesUrl}/all?fields=languages`);
+    // currencies
+    const currencies = await axios.get(`${countriesUrl}/all?fields=currencies`);
 
     return res.status(200).json({
       message: "Home page",
       data: sortedData,
       continents: continents.data,
+      languages: languages.data,
+      currencies: currencies.data,
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
